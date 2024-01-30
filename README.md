@@ -11,15 +11,17 @@
 ```
 pip install request
 pip install openpyxl
+pip install tqdm
 ```
 
 3.配置并运行main.py
 
 4.enjoy it
 
-## feature
+## feature&todo
 
 - [X] 获取对应分数
+- [ ] 获取所有符合条件的大学&职业学校的信息
 - [ ] 提高运行效率
 - [ ] 根据所给成绩分析
 
