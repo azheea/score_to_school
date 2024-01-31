@@ -5,6 +5,7 @@ import openpyxl
 import time
 from tqdm import tqdm
 import threading
+import os
 
 # author 啊这.
 # buy me a coffie https://v我50.啊这.site
@@ -16,8 +17,13 @@ year = 2022  # 此处填写所需获取的年份
 is_hugescratch = True  # 是否模糊搜索 即包含专业关键词就收入
 is_college_only = True  # 仅保留大学
 # --------------------------------------
+
+
+path = os.getcwd()
 province_id = str(province_id)
-if not province_id.isdigit():
+if not province_id.isdigit() or province_id == "None":
+    if province_id == "None":
+        province_id = input("请输入省份名称:")
     print("检测到您未获取您省份的id,正在为你获取")
     back = requests.get("https://static-data.gaokao.cn/www/2.0/config/81004.json")
     all_province = json.loads(back.text)
@@ -35,7 +41,8 @@ if not province_id.isdigit():
         sys.exit()
 
 is_id_there = False  # 是否已经获取了id 如有可关闭 可节省时间 但也可能影响获取结果 目前尚未完成
-
+if year == None:
+    year = input("请输入要获取的年份:")
 if not is_id_there:
     print("开始获取学校id")
     all_school_id = {}
@@ -48,8 +55,9 @@ if not is_id_there:
             continue
         all_school_id[school_name] = school_id
 
-
-workbook = openpyxl.load_workbook('schools.xlsx')
+if want == None:
+    want = input("请输入您想选择的专业:")
+workbook = openpyxl.load_workbook(f'{path}\\schools.xlsx')
 worksheet = workbook['Sheet1']
 line = 0
 print("开始获取学校对应专业最低分,该过程较慢,请耐心等待")
@@ -103,10 +111,11 @@ with tqdm(total=total_lines, ncols=80, dynamic_ncols=True) as pbar:
     for t in threads:
         t.join()
 
-    workbook.save(f"{year}_{want}_学校分数排行.xlsx")
+    workbook.save(f"{path}\{year}_{want}_学校分数排行.xlsx")
+    # print(f"{path}{year}_{want}_学校分数排行.xlsx")
     end_time = time.time()
     pbar.update(total_lines)
     pbar.close()
-    print(f"\n工作完成,结果已经输出在{year}_{want}_学校分数排行.xlsx")
+    print(f"\n工作完成,结果已经输出在{path}\{year}_{want}_学校分数排行.xlsx")
     print(f"本次用时: {end_time - start_time}秒")
     print(f"{','.join(errors)}  获取失败")
