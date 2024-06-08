@@ -9,7 +9,7 @@
 2.下载所需运行库
 
 ```
-pip install request
+pip install requests
 pip install openpyxl
 pip install tqdm
 ```
