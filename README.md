@@ -9,7 +9,7 @@
 2.下载所需运行库
 
 ```
-pip install requests
+pip install request
 pip install openpyxl
 pip install tqdm
 ```
@@ -18,12 +18,15 @@ pip install tqdm
 
 4.enjoy it
 
+
+*ps:若报错请根据报错排错 若无法完成请截图并开一个issue*
+
 ## feature&todo
 
 - [X] 获取对应分数
+- [X] 根据所给成绩分析
 - [ ] 获取所有符合条件的大学&职业学校的信息
 - [ ] 提高运行效率
-- [ ] 根据所给成绩分析
 
 What's more…
 -------------

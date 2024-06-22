@@ -3,14 +3,13 @@ import json
 import Getpage
 
 def getScore(schoolId, provinceId, year):
-    directory = f"./school/{year}"
+    directory = f"./schools/{year}"
     if not os.path.exists(directory):
         os.makedirs(directory)
 
     file_path = f"{directory}/{schoolId}.json"
     if os.path.exists(file_path):
         with open(file_path, "r", encoding='utf-8') as file:
-            # print(json.load(file))
             return json.load(file)
 
     page = 0
@@ -25,9 +24,3 @@ def getScore(schoolId, provinceId, year):
     with open(file_path, "w", encoding='utf-8') as file:
         json.dump(all_data, file, ensure_ascii=False)
     return all_data
-
-# 调用示例
-# schoolId = 143
-# provinceId = 52
-# year = 2023
-# all_data = getScore(schoolId, provinceId, year)
