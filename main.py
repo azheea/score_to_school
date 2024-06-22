@@ -5,15 +5,18 @@ import openpyxl
 import time
 from tqdm import tqdm
 import threading
+from concurrent.futures import ThreadPoolExecutor
 import os
+import GetScore
+import Getschoolid
 
 # author 啊这.
 # buy me a coffie https://v我50.啊这.site
 
 # --------------------------------------
-province_id = "贵州"  # 填写对应地区的id 贵州的为52 不清楚请填写省份全名(会浪费一点时间遍历)
-want = "音乐"  # 请填写所选专业
-year = 2022  # 此处填写所需获取的年份
+province_id = 52  # 填写对应地区的id 贵州的为52 不清楚请填写省份全名(会浪费一点时间遍历)
+want = "计算机"  # 请填写所选专业
+year = 2023  # 此处填写所需获取的年份
 is_hugescratch = True  # 是否模糊搜索 即包含专业关键词就收入
 is_college_only = True  # 仅保留大学
 # --------------------------------------
@@ -45,22 +48,15 @@ if year == None:
     year = input("请输入要获取的年份:")
 if not is_id_there:
     print("开始获取学校id")
-    all_school_id = {}
-    back = requests.get("https://static-data.gaokao.cn/www/2.0/info/linkage.json")
-    all_school_ids = ((json.loads(back.text)).get("data")).get("school")
-    for i in range(len(all_school_ids)):
-        school_id = all_school_ids[i]["school_id"]
-        school_name = all_school_ids[i]["name"]
-        if ("职业" in school_name or "技术" in school_name or "专科" in school_name) and is_college_only:
-            continue
-        all_school_id[school_name] = school_id
+    all_school_id = Getschoolid(is_college_only)
 
 if want == None:
     want = input("请输入您想选择的专业:")
+
 workbook = openpyxl.load_workbook(f'{path}\\schools.xlsx')
 worksheet = workbook['Sheet1']
 line = 0
-print("开始获取学校对应专业最低分,该过程较慢,请耐心等待")
+print("开始获取学校对应专业最低分,首次获取的速度较慢,请耐心等待")
 start_time = time.time()
 total_lines = worksheet.max_row - 1
 lock = threading.Lock()
@@ -71,13 +67,10 @@ def fetch_score(line):
     if school_id is not None:
         try:
             worksheet.cell(row=line + 1, column=2).value = school_id
-            back = requests.get(
-                f"https://static-data.gaokao.cn/www/2.0/schoolspecialscore/{school_id}/{year}/{province_id}.json")
-            all_score = (json.loads(back.text)).get("data")
+            all_score = GetScore.getScore(schoolId=school_id,provinceId=province_id,year=year)
 
             result = {}
-            for key, value in all_score.items():
-                for item in value['item']:
+            for item in all_score["item"]:
                     if not is_hugescratch:
                         if item['spname'] == want:
                             result['spname'] = item['spname']
@@ -90,6 +83,8 @@ def fetch_score(line):
                             result['min'] = item['min']
                             result['min_section'] = item['min_section']
                             break
+
+
             if result.get("min") is not None and result.get("min_section") is not None:
                 with lock:
                     worksheet.cell(row=line + 1, column=8).value = result.get("min")
@@ -97,22 +92,16 @@ def fetch_score(line):
                     worksheet.cell(row=line + 1, column=10).value = result.get("spname")
         except Exception as e:
             # print(e)
-            errors.append(f"{school_name}")
+            errors.append(f"{school_name},{e}")
             pass
 
 with tqdm(total=total_lines, ncols=80, dynamic_ncols=True) as pbar:
-    threads = []
-    for _ in range(total_lines):
-        line += 1
-        t = threading.Thread(target=fetch_score, args=(line,))
-        threads.append(t)
-        t.start()
-
-    for t in threads:
-        t.join()
+    with ThreadPoolExecutor(max_workers=5) as executor:  # 限制最大线程数量为5
+        for _ in range(total_lines):
+            line += 1
+            executor.submit(fetch_score, line)
 
     workbook.save(f"{path}\{year}_{want}_学校分数排行.xlsx")
-    # print(f"{path}{year}_{want}_学校分数排行.xlsx")
     end_time = time.time()
     pbar.update(total_lines)
     pbar.close()
