@@ -12,11 +12,12 @@ import GetScore
 # buy me a coffie https://v我50.啊这.site
 
 # --------------------------------------
-province_id = "贵州"  # 填写对应地区的id 贵州的为52 不清楚请填写省份全名(会浪费一点时间遍历)
-want = "计算机"  # 请填写所选专业
-year = 2023  # 此处填写所需获取的年份
+province_id = 52  # 填写对应地区的id 贵州的为52 不清楚请填写省份全名(会浪费一点时间遍历)
+want = "计算生物"  # 请填写所选专业
+year = 2024  # 此处填写所需获取的年份
 is_hugescratch = True  # 是否模糊搜索 即包含专业关键词就收入
 is_college_only = True  # 仅保留大学
+thread_num = 2 #线程数量限制 防止过快导致出问题
 # --------------------------------------
 
 
@@ -103,7 +104,7 @@ def fetch_score(line):
             pass
 
 with tqdm(total=total_lines, ncols=80, dynamic_ncols=True) as pbar:
-    with ThreadPoolExecutor(max_workers=5) as executor:  # 限制最大线程数量为5
+    with ThreadPoolExecutor(max_workers=thread_num) as executor:
         for _ in range(total_lines):
             line += 1
             executor.submit(fetch_score, line)
