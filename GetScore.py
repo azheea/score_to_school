@@ -3,7 +3,7 @@ import json
 import Getpage
 
 def getScore(schoolId, provinceId, year):
-    directory = f"./schools/{year}"
+    directory = f"./schools/{provinceId}/{year}"
     if not os.path.exists(directory):
         os.makedirs(directory)
 
