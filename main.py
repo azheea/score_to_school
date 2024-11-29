@@ -1,63 +1,21 @@
-import requests
 import json
-import sys
 import openpyxl
-import time
 from tqdm import tqdm
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import os
-import GetScore
+import Get_informations.GetScore as GetScore
+import Get_informations.Get_province_id as Get_Province_Id
+import Get_informations.Get_school_id as Get_School_Id
 
-# author 啊这.
-# buy me a coffie https://v我50.azhe.space
 
-# --------------------------------------
-province_id = 52  # 填写对应地区的id 贵州的为52 不清楚请填写省份全名(会浪费一点时间遍历)
-want = "生物科学"  # 请填写所选专业
-year = 2024  # 此处填写所需获取的年份
-is_hugescratch = True  # 是否模糊搜索 即包含专业关键词就收入
-thread_num = 2  # 线程数量限制 防止过快导致出问题
-# --------------------------------------
 
-path = os.getcwd()  # 获取当前工作目录的路径
-province_id = str(province_id)  # 将province_id转换为字符串类型
-
-def main():
-    def get_province_id(province_id):
-        if not province_id.isdigit() or province_id == "None":  # 如果province_id不是数字或为字符串"None"
-            if province_id == "None":  # 如果province_id为字符串"None"
-                province_id = input("请输入省份名称:")  # 提示用户输入省份名称
-            print("检测到您未获取您省份的id,正在为你获取")
-            back = requests.get("https://static-data.gaokao.cn/www/2.0/config/81004.json")  # 发送GET请求获取省份信息
-            all_province = json.loads(back.text)  # 将返回的JSON数据解析为字典
-
-            for key, value in all_province['data'].items():  # 遍历省份信息字典
-                if value['provinceName'] == province_id:  # 如果省份名称与输入的省份名称相同
-                    id = key  # 获取省份ID
-                    break
-
-            if province_id:  # 如果输入的省份名称不为空
-                print(f"{province_id}的ID为:{id}")  # 打印省份名称和对应的ID
-                province_id = id  # 将province_id更新为对应的ID
-            else:
-                print("找不到该省份的ID")  # 打印找不到省份ID的提示信息
-                sys.exit()  # 退出程序
-        return province_id  # 返回province_id
-
-    province_id = get_province_id(province_id)  # 获取省份ID
-
-    def get_school_ids():
-        all_school_id = {}
-        with open("schoolid.json", "r", encoding="utf-8") as f:
-            all_school_ids = (json.loads(f.read())).get("data").get("school")        
-        for school_info in all_school_ids:  # 遍历学校信息列表
-            school_id = school_info["school_id"]  # 获取学校ID
-            school_name = school_info["name"]  # 获取学校名称
-            all_school_id[school_name] = school_id  # 将学校名称和对应的ID添加到字典中
-        return all_school_id  # 返回学校名称和对应的ID字典
-
-    all_school_id = get_school_ids()  # 获取学校名称和对应的ID字典
+def main(province_id,want,year,thread_num):
+    path = os.getcwd()  # 获取当前工作目录的路径
+    province_id = str(province_id)  # 将province_id转换为字符串类型
+    is_hugescratch = True
+    province_id = Get_Province_Id.get_province_id(province_id)  # 获取省份ID
+    all_school_id = Get_School_Id.get_school_ids()  # 获取学校名称和对应的ID字典
 
     def fetch_score(line, worksheet, all_school_id, province_id, year, want, is_hugescratch):
         school_name = worksheet.cell(row=line + 1, column=4).value  # 获取工作表中指定单元格的值，即学校名称
@@ -100,5 +58,16 @@ def main():
         workbook.save(f"{path}\{year}_{want}_学校分数排行.xlsx")  # 保存Excel文件
         print(f"\n工作完成,结果已经输出在{path}\{year}_{want}_学校分数排行.xlsx")  # 打印完成信息及结果文件路径
 
+
+
 if __name__ == "__main__":
-    main()
+    with open("config.json",encoding="utf-8") as f:
+        configs = json.load(f)
+        province_id = configs["province_id"]
+        want = configs["want"]
+        year = configs["year"]
+        thread_num = configs["thread_num"]
+    print("author 啊这.")
+    print("仓库地址:\nhttps://github.com/azheea/score_to_school")
+
+    main(province_id,want,year,thread_num)

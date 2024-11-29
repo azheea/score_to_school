@@ -8,16 +8,22 @@
 
 2.下载所需运行库
 
+`pip install -r requirements.txt`
+
+3.配置config.json,其中:
+
+```json
+{
+    "province_id" : "贵州", 这里填写省份名称
+    "want" : "生物科学", 这里填写专业名称
+    "year" : 2024, 这里填写年份
+    "thread_num" : 2 这里填写线程数量 注意:第一次获取某一年份时最好设置为2 之后可以调高
+}
 ```
-pip install request
-pip install openpyxl
-pip install tqdm
-```
 
-3.配置并运行main.py
+4.运行main.py
 
-4.enjoy it
-
+5.enjoy it
 
 *ps:若报错请根据报错排错 若无法完成请截图并开一个issue*
 
