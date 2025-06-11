@@ -1,20 +1,31 @@
 import os
 import json
+import sqlite3
 import Get_informations.Getpage as Getpage
 
+conn = sqlite3.connect('score.db')
+cursor = conn.cursor()
+
 def getScore(schoolId, provinceId, year):
-    #检查并创建本地目录
-    directory = f"./schools/{provinceId}/{year}"
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    #从本地获取学校信息
-    file_path = f"{directory}/{schoolId}.json"
-    if os.path.exists(file_path):
-        with open(file_path, "r", encoding='utf-8') as file:
-            return json.load(file)
-
-    #实话实说，这里的逻辑我也真看不懂了。。。 等gpt解释吧
+    # 检查表是否存在，如果不存在则创建
+    cursor.execute(f'''CREATE TABLE IF NOT EXISTS score_data 
+                    (schoolId INTEGER, 
+                     provinceId INTEGER,
+                     year INTEGER,
+                     data TEXT,
+                     PRIMARY KEY (schoolId, provinceId, year))''')
+    
+    # 先从数据库中查询
+    cursor.execute('''SELECT data FROM score_data 
+                     WHERE schoolId = ? AND provinceId = ? AND year = ?''', 
+                     (schoolId, provinceId, year))
+    result = cursor.fetchone()
+    
+    if result:
+        # 如果在数据库中找到数据，直接返回
+        return json.loads(result[0])
+    
+    # 从API获取数据
     page = 0
     data = []
     all_data = []
@@ -23,7 +34,12 @@ def getScore(schoolId, provinceId, year):
         data = Getpage.getpage(page, schoolId, provinceId, year)
         all_data.extend(data)
     all_data = {"item": all_data}
-
-    with open(file_path, "w", encoding='utf-8') as file:
-        json.dump(all_data, file, ensure_ascii=False)
+    
+    # 保存到数据库
+    cursor.execute('''INSERT OR REPLACE INTO score_data 
+                    (schoolId, provinceId, year, data) 
+                    VALUES (?, ?, ?, ?)''',
+                    (schoolId, provinceId, year, json.dumps(all_data)))
+    conn.commit()
+    
     return all_data

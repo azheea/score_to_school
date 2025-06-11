@@ -5,6 +5,5 @@
     "year" : 2024,
     "ethnic_minority" : false,
     "subject":["物理", "化学", "生物"],
-    "output":"json",
-    "thread_num" : 10
+    "thread_num" : 2
 }
